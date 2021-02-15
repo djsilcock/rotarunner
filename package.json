@@ -1,0 +1,19 @@
+{
+  "name": "rotarunner",
+  "version": "1.0.0",
+  "description": "Rota manager",
+  "main": "index.js",
+  "repository": "https://github.com/djsilcock/rotarunner",
+  "author": "djsilcock <djsilcock@users.noreply.github.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "next",
+    "build": "next build",
+    "dev": "next dev"
+  },
+  "dependencies": {
+    "next": "^10.0.6",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  }
+}
