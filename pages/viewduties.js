@@ -1,7 +1,7 @@
-import {observable } from "mobx";
+import { action, computed, observable } from "mobx";
 import React from "react";
 import { KeyboardDatePicker as DatePicker } from "@material-ui/pickers";
-import WeekView from "../components/weekView";
+import MonthView from "../components/monthView";
 import setTimeValues from "../utils/setTimeValues";
 import {
   Container,
@@ -56,14 +56,13 @@ const theatreNames = [
   { shortName: "Th1", theatreName: "Theatre 1" },
 ];
 
-function dutyFilter(allDuties) {
-  return computedFn(function (location, startTime) {
+
+const getDuties=computedFn(function (staffName, startTime) {
     return allDuties.filter((thisDuty) =>
         thisDuty.startTime.toDateString() == startTime.toDateString() &&
-        thisDuty.location == location
-      )
-  });
-}
+        thisDuty.staffName == staffName
+      )}
+    );
 
 const useStyles = makeStyles({
   drawer: {
@@ -88,13 +87,30 @@ export default function App() {
           variant={isMobile ? "dialog" : "inline"}
           onChange={setDate}
         />
+        <button
+          type="button"
+          onClick={action(() => {
+            const tomorrow = Date.now() + 3600 * 24 * 1000;
+            allDuties[0].startTime = setTimeValues(tomorrow, {
+              hour: 8,
+              minute: 0,
+              second: 0,
+            });
+            allDuties[0].finishTime = setTimeValues(tomorrow, {
+              hour: 20,
+              minute: 0,
+              second: 0,
+            });
+          })}
+        >
+          Click to change
+        </button>
         <div style={{ height: "10px" }}></div>
-        <WeekView
+        <MonthView
           viewDate={date}
-          getDuties={dutyFilter(allDuties)}
-          theatreNames={theatreNames}
+          getDuties={day=>getDuties('Joe Bloggs',day)}       
         />
       </Container>
   );
 }
-App.pageTitle="This week"
+App.pageTitle="All Duties"

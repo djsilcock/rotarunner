@@ -1,0 +1,38 @@
+Additional 3rd on
+
+cat ##
+sanjiv #
+jim ###
+scott *##
+pam ###
+francois #
+sam #*####
+gordon ###
+ruth #
+dan *#
+claire ##
+choiti **
+joanne
+vimty
+sabu
+rory
+
+Unused flexible sess
+cat ##
+sam ##
+joanne ###
+pam ##
+francois ###
+ruth ####
+sanjiv ##
+claire #
+vimty ##
+sabu ##
+choiti #
+dan ##
+jim ##
+
+lesley ###
+vicky ##
+lorna ####
+rami ###

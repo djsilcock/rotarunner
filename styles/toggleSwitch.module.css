@@ -1,0 +1,48 @@
+label.switch {
+    position:relative;
+    width:2.5em;
+    height:1.2em;
+    display:inline-block;
+  }
+  label.switch input{
+    opacity:0;
+    width:0;
+    height:0;
+  }
+  span.switch {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius:1em
+  }
+  span.switch:before {
+    position: absolute;
+    content: "";
+    height: 1em;
+    width: 1em;
+    left: 0.1em;
+    bottom: 0.1em;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 1em;
+  }
+  input:checked + span.switch {
+    background-color: navy;
+  }
+  
+  input:focus + span.switch {
+    box-shadow: 0 0 2px #2196F3;
+  }
+  
+  input:checked + span.switch:before {
+    
+    transform: translateX(1.4em);
+  }
+  
