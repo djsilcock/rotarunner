@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 import { makeStyles } from "@material-ui/core";
 import classnames from "classnames/bind";
 import { addDays, addHours, isSameDay, startOfWeek } from "date-fns";
-import { differenceInHours } from "date-fns/esm";
+import { differenceInHours } from "date-fns";
 
 const useStyles = makeStyles((theme) => ({
   weekView: {
