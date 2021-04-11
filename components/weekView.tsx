@@ -5,6 +5,7 @@ import { makeStyles } from "@material-ui/core";
 import classnames from "classnames/bind";
 import { addDays, addHours, isSameDay, startOfWeek } from "date-fns";
 import { differenceInHours } from "date-fns";
+import { computedFn } from "mobx-utils";
 
 const useStyles = makeStyles((theme) => ({
   weekView: {
@@ -136,7 +137,7 @@ const DutyCell = observer(function DutyCell({
   );
 });
 
-function WeekView({ viewDate, getDuties, theatreNames }) {
+function WeekView({ viewDate, allDuties, theatreNames }) {
   const classNames = useStyles();
   const cn = classnames.bind(classNames);
   viewDate = isNaN(viewDate) ? new Date() : viewDate ?? new Date();
@@ -145,6 +146,13 @@ function WeekView({ viewDate, getDuties, theatreNames }) {
     const monday8AM = addHours(startOfWeek(viewDate,{weekStartsOn:1}),8)
     return [0,1,2,3,4,5,6].map(i=>addDays(monday8AM,i))
   }, [viewDate]);
+  
+  const getDuties=React.useMemo(()=>computedFn(function (location, startTime) {
+      return allDuties.filter((thisDuty) =>
+          thisDuty.startTime.toDateString() == startTime.toDateString() &&
+          thisDuty.location == location
+        )
+    }),[allDuties])
 
   return (
     <table className={classNames.weekView}>

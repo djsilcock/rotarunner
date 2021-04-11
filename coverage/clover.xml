@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1617654980255" clover="3.2.0">
+  <project timestamp="1617654980255" name="All files">
+    <metrics statements="35" coveredstatements="35" conditionals="8" coveredconditionals="6" methods="19" coveredmethods="19" elements="62" coveredelements="60" complexity="0" loc="35" ncloc="35" packages="2" files="2" classes="2"/>
+    <package name="components">
+      <metrics statements="23" coveredstatements="23" conditionals="8" coveredconditionals="6" methods="14" coveredmethods="14"/>
+      <file name="WeekView.tsx" path="C:\Users\Danny\Documents\web_projects\rotarunner\components\WeekView.tsx">
+        <metrics statements="23" coveredstatements="23" conditionals="8" coveredconditionals="6" methods="14" coveredmethods="14"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="82" count="2" type="stmt"/>
+        <line num="90" count="6" type="stmt"/>
+        <line num="91" count="6" type="stmt"/>
+        <line num="93" count="6" type="stmt"/>
+        <line num="121" count="2" type="stmt"/>
+        <line num="126" count="48" type="stmt"/>
+        <line num="128" count="48" type="stmt"/>
+        <line num="133" count="48" type="stmt"/>
+        <line num="135" count="6" type="stmt"/>
+        <line num="141" count="2" type="stmt"/>
+        <line num="142" count="2" type="stmt"/>
+        <line num="143" count="2" type="cond" truecount="2" falsecount="2"/>
+        <line num="144" count="2" type="stmt"/>
+        <line num="146" count="2" type="stmt"/>
+        <line num="147" count="14" type="stmt"/>
+        <line num="150" count="2" type="stmt"/>
+        <line num="151" count="46" type="stmt"/>
+        <line num="152" count="92" type="cond" truecount="2" falsecount="0"/>
+        <line num="157" count="2" type="stmt"/>
+        <line num="164" count="14" type="stmt"/>
+        <line num="178" count="6" type="stmt"/>
+        <line num="183" count="42" type="stmt"/>
+      </file>
+    </package>
+    <package name="cypress.components">
+      <metrics statements="12" coveredstatements="12" conditionals="0" coveredconditionals="0" methods="5" coveredmethods="5"/>
+      <file name="weekview.spec.js" path="C:\Users\Danny\Documents\web_projects\rotarunner\cypress\components\weekview.spec.js">
+        <metrics statements="12" coveredstatements="12" conditionals="0" coveredconditionals="0" methods="5" coveredmethods="5"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="32" count="2" type="stmt"/>
+        <line num="33" count="2" type="stmt"/>
+        <line num="34" count="2" type="stmt"/>
+        <line num="36" count="2" type="stmt"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="38" count="2" type="stmt"/>
+        <line num="39" count="2" type="stmt"/>
+        <line num="40" count="4" type="stmt"/>
+        <line num="42" count="2" type="stmt"/>
+        <line num="43" count="2" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
