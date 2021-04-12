@@ -1,6 +1,6 @@
 import React from 'react'
-//import myThing from '../myloader!../testpage'
+import {myThing} from './../myloader!./../testpage'
 
 export default function TestPage(){
-  return <h1>test thing</h1>
+  return <h1>{myThing}</h1>
 }

@@ -92,6 +92,7 @@ export default function App() {
         <WeekView
           viewDate={date}
           getDuties={dutyFilter(allDuties)}
+          allDuties={allDuties}
           theatreNames={theatreNames}
         />
       </Container>

@@ -1,1 +1,1 @@
-//comment
+module.exports={myThing:'test thing'}
