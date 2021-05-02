@@ -1,7 +1,7 @@
 version: '3.2'
 services:
   cypress:
-    image: cypress/included:7.1.0
+    image: cypress/included:7.2.0
     environment:
       - DISPLAY=novnc:0.0
       - DEBUG=cypress*
