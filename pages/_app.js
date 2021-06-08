@@ -25,8 +25,10 @@ import MenuIcon from "@material-ui/icons/Menu";
 import EditIcon from "@material-ui/icons/Edit";
 import { CalendarToday, DateRange, EventBusy, Mail } from "@material-ui/icons";
 import { Observer, useLocalObservable } from 'mobx-react-lite';
-import { action } from 'mobx';
+import { action, observable } from 'mobx';
 import { SettingsContext } from '../components/context';
+import { createViewModel } from 'mobx-utils';
+import { startOfToday, startOfTomorrow } from 'date-fns';
 const useStyles = makeStyles({
   drawer: {
     width: "20em",
@@ -35,13 +37,66 @@ const useStyles = makeStyles({
     padding: "1em",
   },
 });
+
+const allDuties = observable.array([
+  {
+    id: 100,
+    location: "EmgTh",
+    dutyDay:startOfToday(),
+    startTime: 8,
+    duration:24,
+    staffName: "Emergencies",
+    staffLevel: null,
+    staffGroup: "theatreDescription",
+  },
+  
+  {
+    id: 0,
+    location: "EmgTh",
+    dutyDay:startOfToday(),
+    startTime: 8,
+    duration:10,
+    staffName: "Joe Bloggs",
+    staffLevel: "ST5",
+    staffGroup: "higher",
+  },
+  {
+    id: 1,
+    location: "EmgTh",
+    dutyDay: startOfTomorrow(), 
+    startTime:13,
+    duration:5,
+    staffName: "Fred Bloggs",
+    staffLevel: "CT1",
+    staffGroup: "core",
+  },
+]);
+
+const theatreNames = [
+  { shortName: "EmgTh", theatreName: "Emergency Theatre" },
+  { shortName: "ICU", theatreName: "ICU" },
+  { shortName: "Th1", theatreName: "Theatre 1" },
+];
+
 export default function MyApp(props) {
   const { Component, pageProps } = props;
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const settings=useLocalObservable(()=>({
-    editMode:false
+    editMode: false,
+    data: allDuties.map(createViewModel),
+    theatreNames
   }))
-  const toggleEdit=action(()=>{settings.editMode=!settings.editMode})
+  const toggleEdit = action(() => {
+    if (settings.editMode) {
+      if (settings.data.some(d => d.isDirty)) {
+        console.log('unsaved data!')
+      }
+      settings.data.forEach(d=>d.reset())
+      settings.editMode = false
+      return
+    }
+    settings.editMode = true
+  })
   const classes = useStyles();
   const router=useRouter()
 
@@ -57,7 +112,7 @@ export default function MyApp(props) {
     router.events.on('routeChangeComplete',callback)
     return ()=>router.events.off('routeChangeComplete',callback)
   },[])
-
+  
   return (
     <React.Fragment>
       <SettingsContext.Provider value={settings}>
