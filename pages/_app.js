@@ -27,8 +27,8 @@ import { CalendarToday, DateRange, EventBusy, Mail } from "@material-ui/icons";
 import { Observer, useLocalObservable } from 'mobx-react-lite';
 import { action, observable } from 'mobx';
 import { SettingsContext } from '../components/context';
-import { createViewModel } from 'mobx-utils';
-import { startOfToday, startOfTomorrow } from 'date-fns';
+import { startOfToday, startOfTomorrow } from 'date-fns'
+
 const useStyles = makeStyles({
   drawer: {
     width: "20em",
@@ -38,60 +38,30 @@ const useStyles = makeStyles({
   },
 });
 
-const allDuties = observable.array([
-  {
-    id: 100,
-    location: "EmgTh",
-    dutyDay:startOfToday(),
-    startTime: 8,
-    duration:24,
-    staffName: "Emergencies",
-    staffLevel: null,
-    staffGroup: "theatreDescription",
-  },
-  
-  {
-    id: 0,
-    location: "EmgTh",
-    dutyDay:startOfToday(),
-    startTime: 8,
-    duration:10,
-    staffName: "Joe Bloggs",
-    staffLevel: "ST5",
-    staffGroup: "higher",
-  },
-  {
-    id: 1,
-    location: "EmgTh",
-    dutyDay: startOfTomorrow(), 
-    startTime:13,
-    duration:5,
-    staffName: "Fred Bloggs",
-    staffLevel: "CT1",
-    staffGroup: "core",
-  },
-]);
 
-const theatreNames = [
-  { shortName: "EmgTh", theatreName: "Emergency Theatre" },
-  { shortName: "ICU", theatreName: "ICU" },
-  { shortName: "Th1", theatreName: "Theatre 1" },
-];
+import { getTheatreNames,getListsForTheatreDay,dispatchAction,modals } from '../lib/datalayer'
 
 export default function MyApp(props) {
   const { Component, pageProps } = props;
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const settings=useLocalObservable(()=>({
     editMode: false,
-    data: allDuties.map(createViewModel),
-    theatreNames
+    getListsForTheatreDay,
+    theatreNames: getTheatreNames(),
+    //dispatchAction,
+    //popupMenu: observable.map(),
+    //popupDialog:observable.map(),
+    marker:'hello'
   }))
   const toggleEdit = action(() => {
     if (settings.editMode) {
+      /*
+      TODO: re-implement save data
       if (settings.data.some(d => d.isDirty)) {
         console.log('unsaved data!')
       }
       settings.data.forEach(d=>d.reset())
+      */
       settings.editMode = false
       return
     }
@@ -189,7 +159,9 @@ export default function MyApp(props) {
           </ListItem>
         </List>
       </Drawer>
-      <Toolbar />
+              <Toolbar />
+              
+              
       <Component {...pageProps} />
     </div>
         

@@ -1,10 +1,40 @@
 import { makeStyles } from "@material-ui/core";
+import zIndex from "@material-ui/core/styles/zIndex";
 
 
 export const useStyles = makeStyles((theme) => ({
   weekView: {
     backgroundColor: theme.palette.divider,
     width: '100%'
+  },
+  emptyTheatre: {
+    textAlign: 'center',
+    verticalAlign: 'center',
+    color: theme.palette.text.disabled,
+    borderWidth: 1,
+    margin: 2,
+    borderColor: theme.palette.text.disabled,
+    borderStyle: 'solid',
+    '&.canDrop': {
+      borderColor: theme.palette.primary.main,
+      borderWidth:4
+    }
+  },
+  theatreList: {
+    borderWidth: 1,
+    margin:2,
+    borderColor: theme.palette.text.primary,
+    borderStyle: 'solid',
+    backgroundColor:theme.palette.background.paper,
+    '&.canDrop': {
+      borderColor: theme.palette.primary.main,
+      borderWidth: 2,
+      margin:1,
+      zIndex:-10
+    }
+  },
+  theatreListHeader: {   
+    backgroundColor:theme.palette.divider,
   },
   timeIndicator: {
     height: 2,
@@ -51,7 +81,7 @@ export const useStyles = makeStyles((theme) => ({
   },
   theatreDescription: {
     fontSize: "x-small",
-    color: "red",
+    
   },
 
   weekday: {
