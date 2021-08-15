@@ -1,1 +1,0 @@
-module.exports={myThing:'test thing'}

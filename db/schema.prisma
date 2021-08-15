@@ -1,0 +1,161 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialActions"]
+}
+
+// --------------------------------------
+
+model User {
+  id             Int      @id @default(autoincrement())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  name           String?
+  email          String   @unique
+  hashedPassword String?
+  role           String   @default("USER")
+
+  tokens   Token[]
+  sessions Session[]
+}
+
+model Session {
+  id                 Int       @id @default(autoincrement())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  expiresAt          DateTime?
+  handle             String    @unique
+  hashedSessionToken String?
+  antiCSRFToken      String?
+  publicData         String?
+  privateData        String?
+
+  user   User? @relation(fields: [userId], references: [id])
+  userId Int?
+}
+
+model Token {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  hashedToken String
+  type        String
+  // See note below about TokenType enum
+  // type        TokenType
+  expiresAt   DateTime
+  sentTo      String
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  @@unique([hashedToken, type])
+}
+
+// NOTE: It's highly recommended to use an enum for the token type
+//       but enums only work in Postgres.
+//       See: https://blitzjs.com/docs/database-overview#switch-to-postgresql
+// enum TokenType {
+//   RESET_PASSWORD
+// }
+
+///
+
+model StaffGroup {
+  id      String          @id
+  name    String
+  members StaffContract[]
+}
+
+model StaffMember {
+  id        Int                @id @default(autoincrement())
+  firstName String
+  lastName  String
+  contracts StaffContract[]
+  rotations StaffInRotations[]
+  duties    StaffDuty[]
+}
+
+model StaffRotation {
+  id    Int                @id @default(autoincrement())
+  name  String
+  staff StaffInRotations[]
+}
+
+model StaffInRotations {
+  id            Int           @id @default(autoincrement())
+  staffMember   StaffMember   @relation(fields: [staffMemberId], references: [id])
+  staffMemberId Int
+  rotation      StaffRotation @relation(fields: [rotationId], references: [id])
+  rotationId    Int
+  startDate     DateTime
+  endDate       DateTime
+}
+
+model StaffContract {
+  id            Int         @id @default(autoincrement())
+  staffMember   StaffMember @relation(fields: [staffMemberId], references: [id])
+  staffMemberId Int
+  employer      String
+  staffGroup    StaffGroup  @relation(fields: [staffGroupId], references: [id])
+  staffGroupId  String
+  startDate     DateTime
+  endDate       DateTime
+}
+
+model TheatreList {
+  id            Int         @id @default(autoincrement())
+  day           String
+  theatre       Theatre     @relation(fields: [theatreId], references: [id])
+  theatreId     String
+  surgeonId     Int?
+  surgeon       Surgeon?    @relation(fields: [surgeonId], references: [id])
+  specialty     Specialty?  @relation(fields: [specialtyId], references: [id])
+  specialtyId   String?
+  sessionTypeId String
+  sessionType   SessionType @relation(fields: [sessionTypeId], references: [id])
+  duties        StaffDuty[]
+}
+
+model Theatre {
+  id    String        @id
+  name  String
+  lists TheatreList[]
+}
+
+model Specialty {
+  id       String        @id
+  name     String
+  surgeons Surgeon[]
+  lists    TheatreList[]
+}
+
+model SessionType {
+  id         String        @id
+  name       String
+  startTime  Int
+  finishTime Int
+  lists      TheatreList[]
+}
+
+model Surgeon {
+  id          Int           @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  specialties Specialty[]
+  lists       TheatreList[]
+}
+
+model StaffDuty {
+  id            Int         @id @default(autoincrement())
+  staffMemberId Int
+  staffMember   StaffMember @relation(fields: [staffMemberId], references: [id])
+  listId        Int
+  list          TheatreList @relation(fields: [listId], references: [id], onDelete: Cascade)
+}

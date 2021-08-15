@@ -1,0 +1,10 @@
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 2em);
+}
+.otherMonthDay {
+  color: "gray";
+}
+.thisMonthDay {
+  composes: normal-foreground from global;
+}
