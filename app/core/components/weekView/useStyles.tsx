@@ -1,6 +1,7 @@
+import { CSSObject } from "@material-ui/styled-engine"
 import { isSameDay } from "date-fns"
 
-export const styles = {
+export const styles: { [key: string]: CSSObject | ((any) => CSSObject) } = {
   weekView: {
     backgroundColor: "theme.palette.divider",
     width: "100%",
