@@ -2,7 +2,16 @@ import React from "react"
 import InputLabel from "@material-ui/core/InputLabel"
 import Input from "@material-ui/core/Input"
 import MenuItem from "@material-ui/core/MenuItem"
-import { FormControl, Box, Divider } from "@material-ui/core"
+import {
+  FormControl,
+  Box,
+  Divider,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@material-ui/core"
 import Select, { SelectChangeEvent } from "@material-ui/core/Select"
 import {
   Button,
@@ -12,19 +21,23 @@ import {
   DialogTitle,
   TextField,
   Grid,
+  Autocomplete,
 } from "@material-ui/core"
-import { useQuery, useMutation, invalidateQuery, setQueryData } from "blitz"
+import { useQuery, useMutation, invalidateQuery } from "blitz"
 import getSurgeonsAndSpecialties from "./queries/getSurgeonsAndSpecialties"
 import getSessionTypes from "./queries/getSessionTypes"
 import getListInfo from "./queries/getListInfo"
+import getStaff from "./queries/getAllStaff"
 import modifyList from "./mutations/modifyList"
 import getListsForWeek from "./queries/getListsForWeek"
-import startOfDay from "date-fns/startOfDay"
+
 import getTheatres from "./queries/getTheatres"
 import { DatePicker } from "@material-ui/lab"
-import { Field, Form, useFormState } from "react-final-form"
+import { Field, Form } from "react-final-form"
+import arrayMutators, { update } from "final-form-arrays"
 import { TheatreList } from "db"
-import { parseISO, formatISO } from "date-fns"
+import { formatISO } from "date-fns"
+import { Add, Close, Delete } from "@material-ui/icons"
 
 const styles = {
   container: {
@@ -34,7 +47,35 @@ const styles = {
   formControl: {
     margin: (theme) => theme.spacing(1),
     minWidth: 120,
+    width: "85%",
   },
+}
+
+function DropdownField({
+  name,
+  options,
+  label,
+}: {
+  name: string
+  options: [id: string, label: string][]
+  label?: string
+}) {
+  return (
+    <Field name={name}>
+      {(fieldState) => (
+        <FormControl sx={styles.formControl}>
+          {label && <InputLabel htmlFor="demo-dialog-native">{label}</InputLabel>}
+          <Select {...fieldState.input} input={<Input id="session-input" />}>
+            {options.map(([id, name]) => (
+              <MenuItem key={id} value={id}>
+                {name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
+    </Field>
+  )
 }
 
 export function ListChangeForm({
@@ -47,6 +88,7 @@ export function ListChangeForm({
   const [specialtyOptions] = useQuery(getSurgeonsAndSpecialties, {})
   const [theatres] = useQuery(getTheatres, {})
   const [sessionTypes] = useQuery(getSessionTypes, {})
+  const [staffMembers] = useQuery(getStaff, {})
   const [initialValues] = useQuery(getListInfo, { id: id! }, { enabled: id != null })
   const [changeList] = useMutation(modifyList)
   React.useEffect(() => {
@@ -54,7 +96,8 @@ export function ListChangeForm({
   }, [initialValues, sessionTypes])
   const executeChange = (changes) =>
     changeList({
-      list: initialValues as TheatreList,
+      list: initialValues!,
+      action: "modify",
       changes,
     })
       .then((results) => {
@@ -69,67 +112,16 @@ export function ListChangeForm({
   return (
     <Dialog open={id != null} onClose={handleClose}>
       <DialogTitle>Modify list</DialogTitle>
-      <Form onSubmit={executeChange} initialValues={initialValues}>
+      <Form
+        onSubmit={executeChange}
+        initialValues={initialValues as TheatreList}
+        mutators={{ ...arrayMutators }}
+      >
         {(formState) => (
           <>
             <DialogContent>
               <form>
                 <Grid container rowSpacing={2}>
-                  <Field name="specialtyId">
-                    {(specialtyState) => {
-                      console.log({ specialtyState })
-                      return (
-                        <>
-                          <Grid item xs={6}>
-                            <FormControl sx={styles.formControl}>
-                              <InputLabel htmlFor="specialty">Specialty</InputLabel>
-                              <Select
-                                native
-                                {...specialtyState.input}
-                                input={<Input id="specialty" />}
-                              >
-                                <option aria-label="None" value="" />
-                                {specialtyOptions.map(({ id, name }) => (
-                                  <option key={id} value={id}>
-                                    {name} ({id})
-                                  </option>
-                                ))}
-                              </Select>
-                            </FormControl>
-                          </Grid>
-                          <Field name="surgeonId" parse={(v) => parseInt(v)}>
-                            {(surgeonState) => (
-                              <Grid item xs={6}>
-                                <FormControl sx={styles.formControl}>
-                                  <InputLabel htmlFor="surgeon">Surgeon</InputLabel>
-                                  <Select
-                                    native
-                                    {...surgeonState.input}
-                                    input={<Input id="surgeon" />}
-                                  >
-                                    <option aria-label="None" value="" />
-                                    {(
-                                      specialtyOptions.find(
-                                        (spec) => spec.id == specialtyState.input.value
-                                      )?.surgeons ?? []
-                                    ).map(({ id, firstName, lastName }) => (
-                                      <option key={id} value={id}>
-                                        {firstName} {lastName}
-                                      </option>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                              </Grid>
-                            )}
-                          </Field>
-                        </>
-                      )
-                    }}
-                  </Field>
-
-                  <Grid item xs={12}>
-                    <Divider />
-                  </Grid>
                   <Field name="day" parse={(v) => formatISO(v).slice(0, 10)}>
                     {(dayState) => (
                       <Grid item xs={4}>
@@ -144,47 +136,90 @@ export function ListChangeForm({
                       </Grid>
                     )}
                   </Field>
-                  <Field name="sessionTypeId">
-                    {(sessionTypeState) => (
-                      <Grid item xs={4}>
-                        <FormControl sx={styles.formControl}>
-                          <InputLabel htmlFor="demo-dialog-native">Session</InputLabel>
-                          <Select
-                            native
-                            {...sessionTypeState.input}
-                            input={<Input id="session-input" />}
-                          >
-                            {sessionTypes.map(({ id, name }) => (
-                              <option key={id} value={id}>
-                                {name}
-                              </option>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    )}
-                  </Field>
-                  <Field name="theatreId">
-                    {(sessionTypeState) => (
-                      <Grid item xs={4}>
-                        <FormControl sx={styles.formControl}>
-                          <InputLabel htmlFor="theatreId-input">Location</InputLabel>
-                          <Select
-                            native
-                            {...sessionTypeState.input}
-                            input={<Input id="theatreId-input" />}
-                          >
-                            <option aria-label="None" value="" />
-                            {theatres.map(([id, name]) => (
-                              <option key={id} value={id}>
-                                {name}
-                              </option>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    )}
-                  </Field>
+                  <Grid item xs={4}>
+                    <DropdownField
+                      name="sessionTypeId"
+                      label="session"
+                      options={sessionTypes.map(({ id, name }) => [id, name])}
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <DropdownField name="theatreId" label="Location" options={theatres} />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Divider />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <DropdownField
+                      name="specialtyId"
+                      label="Specialty"
+                      options={specialtyOptions.map(({ id, name }) => [id, name])}
+                    />
+                  </Grid>
+
+                  <Grid item xs={6}>
+                    <DropdownField
+                      name="surgeonId"
+                      label="Surgeon"
+                      options={(
+                        specialtyOptions.find(
+                          (spec) => spec.id == formState.form.getState()?.values?.specialtyId
+                        )?.surgeons ?? []
+                      ).map(({ id, firstName, lastName }) => [`${id}`, `${firstName} ${lastName}`])}
+                    />
+                  </Grid>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell />
+                        <TableCell sx={{ textAlign: "center" }}>Staff Member</TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>Duty</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {formState.form.getState().values?.duties?.map((v, i) => (
+                        <TableRow key={v}>
+                          <TableCell>
+                            <Button
+                              onClick={() => {
+                                formState.form.mutators!.remove!("duties", i)
+                              }}
+                            >
+                              <Delete />
+                            </Button>
+                          </TableCell>
+
+                          <TableCell>
+                            <DropdownField
+                              name={`duties[${i}].staffMemberId`}
+                              options={staffMembers.map((s) => [
+                                "" + s.id,
+                                `${s.firstName} ${s.lastName}`,
+                              ])}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <DropdownField
+                              name={`duties[${i}].sessionTypeId`}
+                              options={sessionTypes.map(({ id, name }) => [id, name])}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <Button
+                    onClick={() =>
+                      formState.form.mutators!.push!("duties", {
+                        staffMemberId: undefined,
+                        sessionTypeId: formState.form.getState().values.sessionTypeId,
+                      })
+                    }
+                  >
+                    <Add />
+                    Add people...
+                  </Button>
                 </Grid>
               </form>
             </DialogContent>

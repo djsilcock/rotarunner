@@ -5,16 +5,39 @@ import { useDispatchAction } from "../useDispatchAction"
 import { useSession } from "blitz"
 import { styles } from "./useStyles"
 import { Box, Paper, Card, Divider } from "@material-ui/core"
-import { SessionType, Specialty, StaffDuty, Surgeon, TheatreList } from "db"
+import { SessionType, Specialty, StaffDuty, StaffMember, Surgeon, TheatreList } from "db"
+import { styled } from "@material-ui/styles"
+import { Prisma } from "db"
 
-export interface TheatreListProp extends TheatreList {
-  specialty?: Specialty | null
-  sessionType: SessionType
-  surgeon?: Surgeon | null
-  duties: StaffDuty[]
-}
+const theatreListWithRelations = Prisma.validator<Prisma.TheatreListArgs>()({
+  include: {
+    specialty: true,
+    sessionType: true,
+    surgeon: true,
+    duties: {
+      include: {
+        staffMember: true,
+        sessionType: true,
+      },
+    },
+  },
+})
+
+const staffDutyWithRelations = Prisma.validator<Prisma.StaffDutyArgs>()({
+  include: {
+    staffMember: true,
+    sessionType: true,
+  },
+})
+
+export type TheatreListExt = Prisma.TheatreListGetPayload<typeof theatreListWithRelations>
+type DutyExt = Prisma.StaffDutyGetPayload<typeof staffDutyWithRelations>
+
 interface DutyListProps {
-  dutyList: TheatreListProp
+  dutyList: TheatreListExt
+}
+interface DutyProps {
+  duty: DutyExt
 }
 
 const useHooks = ({ data, id }) => {
@@ -37,7 +60,6 @@ const useHooks = ({ data, id }) => {
     },
     register: React.useCallback(
       (el) => {
-        console.log(`registering ${id}`, el)
         ref.current = el
         draginfo.setNodeRef(el)
         dropinfo.setNodeRef(el)
@@ -59,6 +81,16 @@ const useHooks = ({ data, id }) => {
   }
 }
 
+const DutyTime = styled("div")({
+  fontSize: "x-small",
+  fontWeight: "bold",
+  color: "theme.palette.primary.dark",
+})
+
+const TheatreDescription = styled("div")({
+  fontSize: "x-small",
+})
+
 export function DutyList(props: DutyListProps) {
   const { dutyList } = props
   const {
@@ -78,29 +110,37 @@ export function DutyList(props: DutyListProps) {
     id: day + theatreId + id,
   })
 
+  const canDrop = dropinfo.isOver && dropinfo.active!.id !== day + id
+
   return (
     <Paper
-      sx={styles.theatreList({ canDrop: dropinfo.isOver && dropinfo.active!.id !== day + id })}
+      sx={{
+        borderWidth: 1,
+        marginBottom: 1,
+        borderColor: canDrop ? "theme.palette.primary.main" : "theme.palette.text.primary",
+        borderStyle: "solid",
+        backgroundColor: "theme.palette.background.paper",
+        zIndex: canDrop ? -10 : undefined,
+      }}
       ref={register}
       onContextMenu={handleContextMenu}
       {...attributes}
       {...listeners}
       style={style}
     >
-      <Box sx={styles.theatreListHeader}>
-        <Box sx={styles.dutyTime}>{sessionName}</Box>
-        <Box sx={styles.theatreDescription}>
-          {specialty?.name ?? ""}
-          {specialty?.name && surgeon?.firstName ? " - " : ""}
+      <DutyTime>{sessionName}</DutyTime>
+      <TheatreDescription>
+        {specialty?.name ?? ""}
+        {specialty?.name && surgeon?.firstName ? " - " : ""}
 
-          {surgeon && (
-            <span>
-              {surgeon?.firstName /*.split(' ').map(s=>s.slice(0,1)).join('')*/ ?? ""}{" "}
-              {surgeon?.lastName ?? ""}
-            </span>
-          )}
-        </Box>
-      </Box>
+        {surgeon && (
+          <span>
+            {surgeon?.firstName /*.split(' ').map(s=>s.slice(0,1)).join('')*/ ?? ""}{" "}
+            {surgeon?.lastName ?? ""}
+          </span>
+        )}
+      </TheatreDescription>
+
       <Divider />
       {duties.length == 0 ? (
         <span>-</span>
@@ -130,7 +170,16 @@ export const EmptyDuty = React.memo(function EmptyDuty(props: EmptyDutyProps) {
   return (
     <Card
       elevation={dropinfo.isOver ? 3 : 0}
-      sx={styles.emptyTheatre({ canDrop: dropinfo.isOver })}
+      sx={{
+        textAlign: "center",
+        verticalAlign: "center",
+        color: "theme.palette.text.disabled",
+        borderWidth: 1,
+        height: "100%",
+        margin: 2,
+        borderColor: dropinfo.isOver ? "theme.palette.primary.main" : "theme.palette.text.disabled",
+        borderStyle: "solid",
+      }}
       ref={register}
       onContextMenu={handleContextMenu}
     >
@@ -138,9 +187,6 @@ export const EmptyDuty = React.memo(function EmptyDuty(props: EmptyDutyProps) {
     </Card>
   )
 })
-interface DutyProps {
-  duty
-}
 
 export const Duty = React.memo(function Duty(props: DutyProps) {
   const { duty } = props
@@ -153,27 +199,35 @@ export const Duty = React.memo(function Duty(props: DutyProps) {
   }
   return (
     <Box
-      sx={styles.duty}
+      sx={{
+        position: "relative",
+      }}
       ref={register}
-      title={`${duty.staffmember.firstName} ${duty.staffmember.lastName} - ${duty.staffmember.staffLevel}`}
+      title={`${duty.staffMember.firstName} ${duty.staffMember.lastName}`}
       onContextMenu={handleContextMenu}
       {...draginfo.attributes}
       {...draginfo.listeners}
       style={style}
     >
       {isPartialDuty(duty) && (
-        <Box sx={styles.dutyTime}>
+        <Box sx={{ fontSize: "x-small" }}>
           {duty.sessionType.startTime}-{duty.sessionType.finishTime % 24}
         </Box>
       )}
-      <Box sx={styles[duty.staffmember.staffGroup]}>
-        {duty.staffmember.firstName} {duty.staffmember.lastName}
+      <Box sx={{ color: "red" }}>
+        {duty.staffMember.firstName} {duty.staffMember.lastName}
       </Box>
-      {duty.staffmember.staffLevel && (
-        <Box component="span" sx={styles.staffLevel}>
-          {"(" + duty.staffmember.staffLevel + ")"}
+      {/*duty.staffMember.staffLevel && (
+        <Box
+          component="span"
+          sx={{
+            fontSize: "x-small",
+            color: "theme.palette.secondary.dark",
+          }}
+        >
+          {"(" + duty.staffMember.staffLevel + ")"}
         </Box>
-      )}
+      )*/}
     </Box>
   )
 })

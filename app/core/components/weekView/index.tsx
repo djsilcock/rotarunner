@@ -26,7 +26,7 @@ function WeekViewInner({ viewDate }) {
     const monday = startOfWeek(viewDate, { weekStartsOn: 1 })
     return [0, 1, 2, 3, 4, 5, 6].map((i) => {
       const day = addDays(monday, i)
-      return { tag: formatISO(day).slice(0, 10), verbose: day.toDateString() }
+      return { day, tag: formatISO(day).slice(0, 10), verbose: day.toDateString() }
     })
   }, [viewDate])
   const handleDragEnd = React.useCallback(
@@ -40,13 +40,25 @@ function WeekViewInner({ viewDate }) {
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <div onContextMenu={(...e) => console.log(e)}>
-        <Table sx={styles.weekView}>
+        <Table
+          sx={{
+            backgroundColor: "theme.palette.divider",
+            width: "100%",
+          }}
+        >
           <TableHead>
             <TableRow>
               <TableCell />
 
               {daysOfWeek.map((day, i) => (
-                <TableCell key={i} sx={styles.weekday({ day })}>
+                <TableCell
+                  key={i}
+                  sx={{
+                    fontFamily: "Gill Sans, Gill Sans MT, Calibri, Trebuchet MS, sans-serif",
+                    fontWeight: isSameDay(day.day, Date.now()) ? "bold" : undefined,
+                    textAlign: "center",
+                  }}
+                >
                   {day.verbose}
                 </TableCell>
               ))}
@@ -55,18 +67,16 @@ function WeekViewInner({ viewDate }) {
           <TableBody>
             {theatreNames.map(([shortName, theatreName]: [string, string]) => (
               <TableRow key={shortName}>
-                <TableCell sx={styles.dutyCell}>
+                <TableCell>
                   <div>{theatreName}</div>
                 </TableCell>
                 {daysOfWeek.map((day, i) => (
-                  <Suspense key={i} fallback={<TableCell sx={styles.dutyCell}>...</TableCell>}>
-                    <DutyCell
-                      key={i}
-                      dutyDay={day.tag}
-                      location={shortName}
-                      theatreLists={theatreLists}
-                    />
-                  </Suspense>
+                  <DutyCell
+                    key={i}
+                    dutyDay={day.tag}
+                    location={shortName}
+                    theatreLists={theatreLists}
+                  />
                 ))}
               </TableRow>
             ))}

@@ -8,6 +8,7 @@ export default async function getListInfo({ id }: { id: number }, ctx: Ctx) {
     where: {
       id,
     },
+    include: { duties: true },
   })
   return list
 }

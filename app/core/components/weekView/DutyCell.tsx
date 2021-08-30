@@ -1,5 +1,5 @@
 import React from "react"
-import { DutyList, EmptyDuty, TheatreListProp } from "./Duty"
+import { DutyList, EmptyDuty, TheatreListExt } from "./Duty"
 import { SettingsContext } from "../context"
 import { useQuery, useSession } from "blitz"
 import getListsForTheatreDay from "./queries/getListsForTheatreDay"
@@ -10,7 +10,7 @@ import { TheatreList } from "db"
 interface DutyCellProps {
   dutyDay: string
   location: string
-  theatreLists: TheatreListProp[]
+  theatreLists: TheatreListExt[]
 }
 
 export function DutyCell(props: DutyCellProps) {
@@ -21,7 +21,17 @@ export function DutyCell(props: DutyCellProps) {
   )
   const ref = React.useRef(null)
   return (
-    <TableCell tabIndex={0} ref={ref} sx={styles.dutyCell} data-target="hello">
+    <TableCell
+      tabIndex={0}
+      ref={ref}
+      sx={{
+        bgcolor: "background",
+        cursor: "pointer",
+        fontFamily: "Gill Sans, Gill Sans MT, Calibri, Trebuchet MS, sans-serif",
+        width: "12.5%",
+        fontSize: "small",
+      }}
+    >
       {lists.length == 0 ? (
         <EmptyDuty dutyDay={dutyDay} location={location} />
       ) : (

@@ -1,7 +1,5 @@
 import React, { ReactElement, Suspense, MutableRefObject } from "react"
 import { useState } from "react"
-import { useCallback } from "react"
-import { PopupDialog, PopupDialogState } from "../PopupDialog"
 import { PopupMenu, PopupMenuState } from "../PopupMenu"
 import { DataContext, SettingsContext } from "../context"
 import { ListChangeForm } from "./requestListSpecChangeForm"
@@ -11,6 +9,7 @@ import getListsForTheatreDay from "./queries/getListsForTheatreDay"
 import getListsForWeek from "./queries/getListsForWeek"
 import { TheatreList, StaffDuty } from "db"
 import modifyList from "./mutations/modifyList"
+import modifyDuty from "./mutations/modifyDuty"
 
 interface DataWrapperProps {
   children: ReactElement
@@ -57,13 +56,14 @@ interface DragAction {
   to: { data: MutableRefObject<DraggedTheatreList | DropEmpty> }
 }
 
-function updateDuty(duty: StaffDuty, updates: Partial<StaffDuty>) {
-  Object.assign(duty, updates)
+async function updateDuty(duty: StaffDuty, changes: Partial<StaffDuty>) {
+  console.log(await invoke(modifyDuty, { duty, action: "modify", changes }))
   console.log(duty)
+  invalidateQuery(getListsForWeek)
 }
 async function updateList(list: TheatreList, updates: Partial<TheatreList>) {
   console.log(list, updates)
-  await invoke(modifyList, { list, changes: updates })
+  console.log(await invoke(modifyList, { list, action: "modify", changes: updates }))
   if (updates.day || updates.theatreId) {
     invalidateQuery(getListsForWeek)
   }
@@ -97,14 +97,14 @@ async function deleteList(list: TheatreList) {
   console.log("delete list")
   const { id, theatreId, day } = list
 
-  await invoke(modifyListMutation, { list, changes: "delete" })
+  await invoke(modifyListMutation, { list, action: "delete" })
   invalidateQuery(getListsForWeek)
 }
 async function cloneList(list: TheatreList) {
   console.log("clone list")
   const { id, theatreId, day } = list
 
-  await invoke(modifyListMutation, { list, changes: "clone" })
+  await invoke(modifyListMutation, { list, action: "clone" })
   invalidateQuery(getListsForWeek)
 }
 

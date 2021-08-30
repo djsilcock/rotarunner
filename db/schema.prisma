@@ -8,7 +8,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["referentialActions"]
+  previewFeatures = ["referentialActions", "interactiveTransactions"]
 }
 
 // --------------------------------------
@@ -142,6 +142,7 @@ model SessionType {
   startTime  Int
   finishTime Int
   lists      TheatreList[]
+  duties     StaffDuty[]
 }
 
 model Surgeon {
@@ -156,6 +157,10 @@ model StaffDuty {
   id            Int         @id @default(autoincrement())
   staffMemberId Int
   staffMember   StaffMember @relation(fields: [staffMemberId], references: [id])
+  sessionTypeId String
+  sessionType   SessionType @relation(fields: [sessionTypeId], references: [id])
   listId        Int
   list          TheatreList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@unique([staffMemberId, sessionTypeId, listId])
 }

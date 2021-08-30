@@ -14,7 +14,7 @@ export default async function getListsForWeek({ day }: { day: string }, ctx: Ctx
       },
     },
     include: {
-      duties: true,
+      duties: { include: { staffMember: true, sessionType: true } },
       sessionType: true,
       surgeon: true,
       specialty: true,
