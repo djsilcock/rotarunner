@@ -12,16 +12,15 @@ import getTheatres from "./queries/getTheatres"
 import { Table, TableHead, TableRow, TableCell, TableBody } from "@material-ui/core"
 import getListsForWeek from "./queries/getListsForWeek"
 
-function WeekViewInner({ viewDate }) {
+function WeekViewInner({ viewDate,orientation }) {
   const dispatch = useDispatchAction()
-  //const { theatreNames } = React.useContext(SettingsContext)
+  viewDate = isNaN(viewDate) ? new Date() : viewDate ?? new Date()
+
   const [theatreNames] = useQuery(getTheatres, { staleTime: 600000 })
   const [theatreLists] = useQuery(getListsForWeek, {
     day: formatISO(startOfWeek(viewDate)).slice(0, 10),
   })
-  //const classNames = useStyles();
-  //const cn = classnames.bind(classNames);
-  viewDate = isNaN(viewDate) ? new Date() : viewDate ?? new Date()
+
   const daysOfWeek = React.useMemo(() => {
     const monday = startOfWeek(viewDate, { weekStartsOn: 1 })
     return [0, 1, 2, 3, 4, 5, 6].map((i) => {
@@ -29,6 +28,7 @@ function WeekViewInner({ viewDate }) {
       return { day, tag: formatISO(day).slice(0, 10), verbose: day.toDateString() }
     })
   }, [viewDate])
+  const dayTables = orientation=='list'?daysOfWeek.map(a => ([a])):[daysOfWeek]
   const handleDragEnd = React.useCallback(
     (evt) => {
       console.log(evt)
@@ -39,54 +39,72 @@ function WeekViewInner({ viewDate }) {
   console.log("weekview rendering")
   return (
     <DndContext onDragEnd={handleDragEnd}>
-      <div onContextMenu={(...e) => console.log(e)}>
-        <Table
-          sx={{
-            backgroundColor: "theme.palette.divider",
-            width: "100%",
-          }}
-        >
-          <TableHead>
-            <TableRow>
-              <TableCell />
+      <div>
+<Table
 
-              {daysOfWeek.map((day, i) => (
-                <TableCell
-                  key={i}
-                  sx={{
-                    fontFamily: "Gill Sans, Gill Sans MT, Calibri, Trebuchet MS, sans-serif",
-                    fontWeight: isSameDay(day.day, Date.now()) ? "bold" : undefined,
-                    textAlign: "center",
-                  }}
-                >
-                  {day.verbose}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {theatreNames.map(([shortName, theatreName]: [string, string]) => (
-              <TableRow key={shortName}>
-                <TableCell>
-                  <div>{theatreName}</div>
-                </TableCell>
+            sx={{
+              backgroundColor: "theme.palette.divider",
+              width: "100%",
+            }}
+          >
+        {dayTables.map((daysOfWeek,i) => (
+
+<>
+              <TableRow>
+                <TableCell />
+
                 {daysOfWeek.map((day, i) => (
-                  <DutyCell
-                    key={i}
-                    dutyDay={day.tag}
-                    location={shortName}
-                    theatreLists={theatreLists}
-                  />
+                  <DateCell key={i} day={day} orientation={orientation}/>
                 ))}
               </TableRow>
-            ))}
-          </TableBody>
+
+
+              {theatreNames.map(([shortName, theatreName]: [string, string]) => (
+                <TableRow key={shortName}>
+                  <TableCell>
+                    <div>{theatreName}</div>
+                  </TableCell>
+                  {daysOfWeek.map((day, i) => (
+                    <DutyCell
+                      key={i}
+                      dutyDay={day.tag}
+                      location={shortName}
+                      theatreLists={theatreLists}
+                    />
+                  ))}
+                </TableRow>
+              ))}
+
+</>
+          ))}
+
         </Table>
       </div>
     </DndContext>
   )
 }
-export default function WeekView(props: { viewDate }) {
+
+
+function DateCell({ day,orientation }: { day: { day: Date; tag: string; verbose: string },orientation:string } ): JSX.Element {
+  const ref = React.useRef<HTMLElement>(null)
+  React.useEffect(() => {
+    if (orientation == "list" && isSameDay(day.day, Date.now())) {
+      ref.current?.scrollIntoView?.({behavior:'smooth',block:'nearest'})
+    }
+  },[orientation,day])
+  return <TableCell
+    ref={ref}
+    sx={{
+      fontFamily: "Gill Sans, Gill Sans MT, Calibri, Trebuchet MS, sans-serif",
+      fontWeight: isSameDay(day.day, Date.now()) ? "bold" : undefined,
+      textAlign: "center",
+    }}
+  >
+    {day.verbose}
+  </TableCell>
+}
+
+export default function WeekView(props: { viewDate,orientation }) {
   return (
     <DataWrapper>
       <WeekViewInner {...props} />

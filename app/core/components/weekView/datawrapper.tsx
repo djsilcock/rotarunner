@@ -10,20 +10,12 @@ import getListsForWeek from "./queries/getListsForWeek"
 import { TheatreList, StaffDuty } from "db"
 import modifyList from "./mutations/modifyList"
 import modifyDuty from "./mutations/modifyDuty"
+import { ActionTypes } from "./ActionTypes"
 
 interface DataWrapperProps {
   children: ReactElement
 }
 
-enum ActionTypes {
-  requestListChange,
-  requestListSplit,
-  requestAddPeople,
-  requestDeleteList,
-  requestRemovePerson,
-  requestChangeDutyTime,
-  requestNewList,
-}
 const contextMenus = {
   list: [
     [ActionTypes.requestListChange, "Modify list..."],
@@ -48,8 +40,8 @@ interface DraggedDuty {
 }
 interface DropEmpty {
   type: "vacant"
-  dutyDay: string
-  location: string
+  day: string
+  theatreId: string
 }
 interface DragAction {
   from: { data: MutableRefObject<DraggedTheatreList | DraggedDuty> }
@@ -87,8 +79,8 @@ function handleDragAction(action: DragAction) {
   }
   if (from.type == "list" && to.type == "vacant") {
     updateList(from.list, {
-      day: to.dutyDay,
-      theatreId: to.location,
+      day: to.list.day,
+      theatreId: to.list.theatreId,
     })
     return
   }
@@ -159,9 +151,10 @@ export function DataWrapper({ children }: DataWrapperProps): JSX.Element {
         cloneList(action.list)
         break
       case ActionTypes.requestListChange:
-        setListChangePopupState(action.list.id)
+        setListChangePopupState(action.list)
         break
       case ActionTypes.requestNewList:
+        setListChangePopupState(action.list)
         break
       case "contextmenu":
         handleContextMenu(action)

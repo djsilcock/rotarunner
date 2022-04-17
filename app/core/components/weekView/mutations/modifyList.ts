@@ -3,40 +3,39 @@ import { formatISO, isValid, startOfWeek, parseISO } from "date-fns"
 import db, { StaffDuty, TheatreList } from "db"
 import getListsForWeek from "../queries/getListsForWeek"
 import * as z from "zod"
+import { numberString as blankableNumberString } from "../numberString"
 
-function numberString() {
-  return z.union([
-    z.number(),
-    z
-      .string()
-      .refine((input) => !isNaN(parseInt(input)))
-      .transform((input) => parseInt(input)),
-  ])
-}
+const numberString = () => blankableNumberString().refine((v) => typeof v != "undefined")
+
+
 const TheatreListFetcher = z.object({
   id: numberString(),
 })
 
 const TheatreListModel = z.object({
-  id: numberString(),
   day: z.string().refine((input) => isValid(parseISO(input))),
   theatreId: z.string(),
-  surgeonId: numberString().nullable(),
-  specialtyId: z.string().nullable(),
+  surgeonId: numberString().nullable().default(null),
+  specialtyId: z.string().nullable().default(null),
   sessionTypeId: z.string(),
   duties: z.array(
     z.object({
       staffMemberId: numberString(),
-      sessionTypeId: z.string(),
+      sessionTypeId: z.string().optional(),
     })
-  ),
+  ).optional(),
 })
 
 const zodSchema = z.union([
+
   z.object({
-    list: TheatreListModel.and(TheatreListFetcher),
+    list: TheatreListFetcher,
     action: z.literal("modify"),
     changes: TheatreListModel.partial(),
+  }),
+  z.object({
+    action: z.literal("create"),
+    list:TheatreListModel
   }),
   z.object({
     list: TheatreListFetcher,
@@ -105,6 +104,18 @@ export default resolver.pipe(
     )
     return listChanges
   },
+  async function createListMaybe(listChanges) {
+    if (listChanges.action != "create") return listChanges
+    const list=Promise.resolve(listChanges.list).then(({ duties, ...data }) =>
+        db.theatreList.create({
+          data
+          }
+        )
+      )
+
+    return { ...listChanges, action: 'modify', list:await list, changes: { duties:listChanges.list.duties } }
+   },
+
   function modifyListMaybe(listChanges) {
     if (listChanges.action != "modify") return listChanges
     return db.$transaction(async () => {
@@ -118,8 +129,13 @@ export default resolver.pipe(
         const staffToRemove = new Map()
         oldStaff.forEach((v, k) => {
           console.log(v, k)
-          if (!newStaff.has(k)) staffToRemove.set(k, v)
-          staffToAdd.delete(k)
+          if (newStaff.get(k) != v) {
+              staffToRemove.set(k, v)  //is different or missing,so delete old version
+            }
+            else{
+              //is same, so don't add again
+              staffToAdd.delete(k)
+            }
         })
         console.log("old/new", oldStaff, newStaff)
         console.log("add/del", staffToAdd, staffToRemove)
@@ -136,7 +152,7 @@ export default resolver.pipe(
             )
           ),
           Promise.all(
-            Array.from(staffToAdd.entries(), ([staffMemberId, sessionTypeId]) =>
+            Array.from(staffToAdd.entries(), ([staffMemberId,sessionTypeId]:[staffMemberId:number, sessionTypeId:string]) =>
               db.staffDuty.create({
                 data: {
                   listId: list.id,

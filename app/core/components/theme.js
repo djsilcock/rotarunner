@@ -3,7 +3,7 @@ import { red } from "@material-ui/core/colors"
 
 // Create a theme instance.
 const theme = createTheme(
-  adaptV4Theme({
+  {
     palette: {
       primary: {
         main: "#556cd6",
@@ -19,6 +19,6 @@ const theme = createTheme(
       },
     },
   })
-)
+
 
 export default theme
